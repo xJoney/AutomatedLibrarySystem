@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
 import './App.css'
+import {
+useQuery
+} from '@tanstack/react-query'
+
 
 interface Book {
   id: number
@@ -11,18 +14,32 @@ import { type ApiRoutes } from "../../server/app"
 
 const client = hc<ApiRoutes>('/')
 
-function App() {
-  const [books, setBooks] = useState<Book[]>([])
 
-  useEffect(()=>{
-    async function fetchBooks(){
-      // const res = await fetch("/api/library")
-      const res = await client.api.library.$get()
-      const data = await res.json()
-      setBooks(data.books)
-    }
-    fetchBooks()
-  },[])
+async function getBooks(){
+  const res = await client.api.library.$get()
+  if(!res.ok){
+    throw new Error("server error")
+  }
+  const data = await res.json()
+  return data
+}
+
+function App() {
+  const {isPending, error, data} = useQuery({ queryKey: ['books'], queryFn: getBooks})
+  if (isPending) return "Loading.."
+  if (error) return "an error has occured: " + error.message;
+
+  // format queries like above instead
+ // const [books, setBooks] = useState<Book[]>([])
+  // useEffect(()=>{
+  //   async function fetchBooks(){
+  //     // const res = await fetch("/api/library")
+  //     const res = await client.api.library.$get()
+  //     const data = await res.json()
+  //     setBooks(data.books)
+  //   }
+  //   fetchBooks()
+  // },[])
 
   return (
     <>
@@ -31,7 +48,7 @@ function App() {
         Book Library
       </h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-6xl">
-        {books.map((book) => (
+        {data?.books.map((book) => (
           <div
             key={book.id}
             className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
@@ -44,7 +61,7 @@ function App() {
           </div>
         ))}
       </div>
-      {books.length === 0 && (
+      {data.books.length === 0 && (
         <p className="text-gray-500 mt-16 text-lg animate-pulse">
           Loading library...
         </p>
