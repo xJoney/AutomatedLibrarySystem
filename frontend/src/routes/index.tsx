@@ -1,8 +1,9 @@
-import './App.css'
-import {
-useQuery
-} from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+import {useQuery} from '@tanstack/react-query'
 
+export const Route = createFileRoute('/')({
+  component: Index,
+})
 
 interface Book {
   id: number
@@ -10,7 +11,7 @@ interface Book {
   desc: string
 }
 import { hc } from 'hono/client'
-import { type ApiRoutes } from "../../server/app"
+import { type ApiRoutes } from "../../../server/app"
 
 const client = hc<ApiRoutes>('/')
 
@@ -24,7 +25,7 @@ async function getBooks(){
   return data
 }
 
-function App() {
+function Index() {
   const {isPending, error, data} = useQuery({ queryKey: ['books'], queryFn: getBooks})
   if (isPending) return "Loading.."
   if (error) return "an error has occured: " + error.message;
@@ -71,4 +72,3 @@ function App() {
   )
 }
 
-export default App
