@@ -5,11 +5,16 @@ import { libraryRoute } from './routes/library'
 
 const app = new Hono()
 
+// logs 
 app.use('*', logger())
 
+//testing 
 app.get("/test", c =>{
     return c.json({"message" : "test"})
 })
+
+//checks if server running
+app.get("/", (c) => c.text("Server running"))
 
 const apiRoutes = app.basePath("api").route("/library", libraryRoute)
 
