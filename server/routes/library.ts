@@ -19,12 +19,6 @@ type Book = z.infer<typeof bookSchema>
 // runtime check to make sure structure is correct before posting
 const createPostSchema = bookSchema.omit({id: true})
 
-// // temporary "db"
-// const fakeBooks: Book[] = [
-//     {id: 1, title: "Book1", desc: "desc1"},
-//     {id: 2, title: "Book2", desc: "desc2"},
-//     {id: 3, title: "Book3", desc: "desc3"}
-// ]
 
 
 
@@ -35,17 +29,36 @@ export const libraryRoute = new Hono()
 
 
 // new CRUD operations
+
+//get all books
 libraryRoute.get("/", async (c) => {
   const allBooks = await db.select().from(books);
   return c.json({ books: allBooks });
 })
 
+// insert book to database
 libraryRoute.post("/", zValidator("json", createPostSchema), async (c) => {
   const data = await c.req.valid("json");
   const inserted = await db.insert(books).values(data).returning(); // <-- write to Neon
   c.status(201);
   return c.json(inserted[0]);
 })
+
+// delete book from database based on id
+libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
+    const id = Number.parseInt(c.req.param("id"));
+  const deleted = await db.delete(books).where(eq(books.id, id)).returning();
+    if (deleted.length === 0){
+        return c.notFound()
+    }
+    return c.json({book: deleted[0]})
+})
+
+// // search query by title
+// libraryRoute.get('/search', zValidator("json", createPostSchema) async(c) => {
+//   const book = await db.select().from(books).where(eq(books.title,title)).returning();
+
+// })
 
 // CRUD operations
 // .get("/", async(c) => {
