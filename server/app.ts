@@ -17,11 +17,9 @@ app.get("/test", c =>{
 //checks if server running
 app.get("/", (c) => c.text("Server running"))
 
-const apiRoutes = app.basePath("api").route("/library", libraryRoute)
-const apiRoutes2 = app.basePath("api").route("/users", userRoute)
-
-
+const api = app.basePath('/api')
+                .route('/library', libraryRoute)
+                .route('/users', userRoute)
 
 export default app
-export type ApiRoutes = typeof apiRoutes
-export type ApiRoutes2 = typeof apiRoutes2
+export type ApiRoutes = typeof api

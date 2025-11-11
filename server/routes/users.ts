@@ -34,6 +34,17 @@ userRoute.get("/", async (c) => {
   return c.json({ users: allUsers })
 })
 
+//get user by id
+userRoute.get("/:id{[0-9]+}", async (c)=>{
+  const id = await Number.parseInt(c.req.param("id"));
+
+  const user = await db.select().from(users).where(eq(users.id,id));
+  if (user.length === 0){
+    return c.notFound()
+  }
+  return c.json({user})
+})
+
 // insert user to database
 userRoute.post("/", zValidator("json", createPostSchema), async (c) => {
   const data = await c.req.valid("json")

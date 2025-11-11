@@ -19,16 +19,23 @@ type Book = z.infer<typeof bookSchema>
 // runtime check to make sure structure is correct before posting
 const createPostSchema = bookSchema.omit({id: true})
 
-
-
-
-
 // create new instance of Hono
 export const libraryRoute = new Hono()
 
 
 
 // new CRUD operations
+
+// get book by id
+libraryRoute.get("/:id{[0-9]+}", async (c) =>{
+    const id = Number.parseInt(c.req.param("id"));
+
+    const book = await db.select().from(books).where(eq(books.id,id));
+    if (book.length ===0){
+      return c.notFound()
+    }
+    return c.json({book})
+})
 
 //get all books
 libraryRoute.get("/", async (c) => {
@@ -54,6 +61,7 @@ libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
     return c.json({book: deleted[0]})
 })
 
+
 // // search query by title
 // libraryRoute.get('/search', zValidator("json", createPostSchema) async(c) => {
 //   const book = await db.select().from(books).where(eq(books.title,title)).returning();
@@ -75,15 +83,6 @@ libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
 //     return c.json(book)
 // })
 
-// .get("/:id{[0-9]+}", (c) =>{
-//     const id = Number.parseInt(c.req.param("id"));
-
-//     const book = fakeBooks.find(book => book.id === id)
-//     if(!book){
-//         return c.notFound()
-//     }
-//     return c.json({book})
-// })
 
 
 // .delete("/:id{[0-9]+}", (c) =>{
