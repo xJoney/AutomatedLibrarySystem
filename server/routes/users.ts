@@ -1,78 +1,146 @@
-import {Hono} from "hono"
-import { zValidator } from '@hono/zod-validator'
-import {z} from "zod"
-import {db} from "../db/"
-import { users } from "../db/schema"
-import { eq } from "drizzle-orm"
+import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
+import { db } from "../db/";
+import { users as usersTable } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { sign, verify } from "hono/jwt";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 
+// Zod Schemas for validation
+const signupSchema = z.object({
+  name: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8).max(50),
+});
 
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+});
 
-const userSchema = z.object({
-    id: z.number().int().positive(),
-    name: z.string().min(3).max(50),
-    email: z.string().min(3).max(50),
-    age: z.string().max(3).max(50),
-    // createdAt: 
-    // num: z.number().int().positive() //if wanted to add number   
-})
-
-// structure for book
-type User = z.infer<typeof userSchema>
-// runtime check to make sure structure is correct before posting
-const createPostSchema = userSchema.omit({id: true})
-
-// create new instance of Hono
 export const userRoute = new Hono()
+  // Signup
+  .post("/signup", zValidator("json", signupSchema), async (c) => {
+    try {
+      const { name, email, password } = c.req.valid("json");
 
+      const existingUser = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email));
 
+      if (existingUser.length > 0) {
+        return c.json({ error: "User with this email already exists" }, 409);
+      }
 
-// CRUD operations
+      const hashedPassword = await Bun.password.hash(password);
 
-//get all useres
-userRoute.get("/", async (c) => {
-  const allUsers = await db.select().from(users)
-  return c.json({ users: allUsers })
-})
+      const [newUser] = await db
+        .insert(usersTable)
+        .values({
+          name,
+          email,
+          password_hash: hashedPassword,
+          age: "99", // Placeholder as per original schema, can be removed or updated
+        })
+        .returning({
+          id: usersTable.id,
+          name: usersTable.name,
+          email: usersTable.email,
+        });
 
-//get user by id
-userRoute.get("/:id{[0-9]+}", async (c)=>{
-  const id = await Number.parseInt(c.req.param("id"));
-
-  const user = await db.select().from(users).where(eq(users.id,id));
-  if (user.length === 0){
-    return c.notFound()
-  }
-  return c.json({user})
-})
-
-// insert user to database
-userRoute.post("/", zValidator("json", createPostSchema), async (c) => {
-  const data = await c.req.valid("json")
-  const inserted = await db.insert(users).values(data).returning() // <-- write to Neon
-  c.status(201)
-  return c.json(inserted[0])
-})
-
-// update user to database
-userRoute.patch("/:id", zValidator("json", createPostSchema.partial()), async (c) => {
-  const id = Number(c.req.param("id"));
-  const data = await c.req.valid("json");
-  const updated = await db.update(users).set(data).where(eq(users.id, id)).returning();
-  if(updated.length === 0){
-    return c.notFound()
-  }
-  else{
-    c.status(202)
-    return c.json(updated[0])
-  }
-})
-
-// delete book from database based on id
-userRoute.delete("/:id{[0-9]+}", async (c) =>{
-    const id = Number.parseInt(c.req.param("id"));
-  const deleted = await db.delete(users).where(eq(users.id, id)).returning();
-    if (deleted.length === 0){
-        return c.notFound()
+      return c.json(newUser, 201);
+    } catch (error) {
+      console.error("Signup Error:", error);
+      return c.json({ error: "Internal Server Error" }, 500);
     }
-    return c.json({user: deleted[0]})
-})
+  })
+
+  // Login
+  .post("/login", zValidator("json", loginSchema), async (c) => {
+    try {
+      const { email, password } = c.req.valid("json");
+
+      const [user] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, email));
+
+      if (!user) {
+        return c.json({ error: "Invalid credentials" }, 401);
+      }
+
+      const isPasswordValid = await Bun.password.verify(
+        password,
+        user.password_hash
+      );
+
+      if (!isPasswordValid) {
+        return c.json({ error: "Invalid credentials" }, 401);
+      }
+
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 1 week
+      };
+      const secret = process.env.JWT_SECRET!;
+      const token = await sign(payload, secret);
+
+      setCookie(c, "auth_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Lax",
+        path: "/",
+      });
+
+      return c.json({ message: "Logged in successfully" });
+    } catch (error) {
+      console.error("Login Error:", error);
+      return c.json({ error: "Internal Server Error" }, 500);
+    }
+  })
+
+  // Get current user
+  .get("/me", async (c) => {
+    const token = getCookie(c, "auth_token");
+    if (!token) {
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+    const secret = process.env.JWT_SECRET!;
+    try {
+      const payload = await verify(token, secret);
+      const [user] = await db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          email: usersTable.email,
+        })
+        .from(usersTable)
+        .where(eq(usersTable.id, payload.sub as number));
+
+      if (!user) {
+        return c.json({ error: "User not found" }, 404);
+      }
+      return c.json(user);
+    } catch (e) {
+      // This catches JWT verification errors (invalid/expired)
+      // and any potential database errors.
+      console.error("Get Me Error:", e);
+      return c.json({ error: "Unauthorized" }, 401);
+    }
+  })
+
+  // Logout
+  .post("/logout", async (c) => {
+    try {
+      deleteCookie(c, "auth_token", {
+        path: "/",
+      });
+      return c.json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Logout Error:", error);
+      return c.json({ error: "Internal Server Error" }, 500);
+    }
+  });
