@@ -53,6 +53,20 @@ userRoute.post("/", zValidator("json", createPostSchema), async (c) => {
   return c.json(inserted[0])
 })
 
+// update user to database
+userRoute.patch("/:id", zValidator("json", createPostSchema.partial()), async (c) => {
+  const id = Number(c.req.param("id"));
+  const data = await c.req.valid("json");
+  const updated = await db.update(users).set(data).where(eq(users.id, id)).returning();
+  if(updated.length === 0){
+    return c.notFound()
+  }
+  else{
+    c.status(202)
+    return c.json(updated[0])
+  }
+})
+
 // delete book from database based on id
 userRoute.delete("/:id{[0-9]+}", async (c) =>{
     const id = Number.parseInt(c.req.param("id"));

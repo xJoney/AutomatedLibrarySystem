@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import {z} from "zod"
 import {db} from "../db/"
 import { books } from "../db/schema"
-import { eq } from "drizzle-orm"
+import { eq, like, ilike } from "drizzle-orm"
 
 
 
@@ -43,6 +43,14 @@ libraryRoute.get("/", async (c) => {
   return c.json({ books: allBooks });
 })
 
+// search query by title
+libraryRoute.get('/search', async(c) => {
+  const title = c.req.query('q');
+  const search = await db.select().from(books).where(ilike(books.title,`%${title}%`));
+  return c.json(search)
+
+})
+
 // insert book to database
 libraryRoute.post("/", zValidator("json", createPostSchema), async (c) => {
   const data = await c.req.valid("json");
@@ -61,12 +69,6 @@ libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
     return c.json({book: deleted[0]})
 })
 
-
-// // search query by title
-// libraryRoute.get('/search', zValidator("json", createPostSchema) async(c) => {
-//   const book = await db.select().from(books).where(eq(books.title,title)).returning();
-
-// })
 
 // CRUD operations
 // .get("/", async(c) => {
