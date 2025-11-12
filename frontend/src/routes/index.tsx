@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import {useQuery} from '@tanstack/react-query'
+import { hc } from 'hono/client'
+import { type ApiRoutes } from "../../../shared/api-routes"
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -10,16 +12,14 @@ interface Book {
   title: string
   desc: string
 }
-import { hc } from 'hono/client'
-import { type ApiRoutes } from "../../../server/app"
 
 const client = hc<ApiRoutes>('/')
 
-
-async function getBooks(){
+async function getBooks():Promise<{ books: Book[] }>{
+  //@ts-ignore - compiler expects a known type, hono listing as
   const res = await client.api.library.$get()
   if(!res.ok){
-    throw new Error("server error")
+    throw new Error("server error") 
   }
   const data = await res.json()
   return data
@@ -30,17 +30,6 @@ function Index() {
   if (isPending) return "Loading.."
   if (error) return "an error has occured: " + error.message;
 
-  // format queries like above instead
- // const [books, setBooks] = useState<Book[]>([])
-  // useEffect(()=>{
-  //   async function fetchBooks(){
-  //     // const res = await fetch("/api/library")
-  //     const res = await client.api.library.$get()
-  //     const data = await res.json()
-  //     setBooks(data.books)
-  //   }
-  //   fetchBooks()
-  // },[])
 
   return (
     <>
