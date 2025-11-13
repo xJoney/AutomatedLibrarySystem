@@ -35,7 +35,7 @@ function LoginPage() {
     mutationFn: async (values: LoginSchema) => {
       const res = await client.api.users.login.$post({ json: values })
       if (!res.ok) {
-        throw new Error((await res.json()).error || 'Login failed')
+        throw new Error((await res.json() as any).error || 'Login failed')
       }
     },
     onSuccess: () => {
