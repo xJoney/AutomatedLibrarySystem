@@ -4,6 +4,7 @@ import {z} from "zod"
 import {db} from "../db/"
 import { books } from "../db/schema"
 import { eq, like, ilike } from "drizzle-orm"
+import { redis } from "../redis";
 
 
 
@@ -47,7 +48,19 @@ libraryRoute.get("/", async (c) => {
 libraryRoute.get('/search', async(c) => {
   const title = c.req.query('q');
   const search = await db.select().from(books).where(ilike(books.title,`%${title}%`));
-  return c.json(search)
+
+  // redis incr counter and publish popularity
+  await redis.incr(`book:${title}.count`);
+  const count = await redis.get(`book:${title}.count`);
+  await redis.publish("popularity", JSON.stringify({title: title, count}));
+
+  return c.json({
+    results: search,
+    popularity: {
+      title: title,
+      count,
+    }
+  })
 
 })
 
