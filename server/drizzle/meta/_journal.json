@@ -15,6 +15,13 @@
       "when": 1762748981840,
       "tag": "0001_puzzling_scream",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762984910941,
+      "tag": "0002_needy_wasp",
+      "breakpoints": true
     }
   ]
 }
