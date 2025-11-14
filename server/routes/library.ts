@@ -49,19 +49,23 @@ libraryRoute.get('/search', async(c) => {
   const title = c.req.query('q');
   const search = await db.select().from(books).where(ilike(books.title,`%${title}%`));
 
-  // redis incr counter and publish popularity
-  await redis.incr(`book:${title}.count`);
-  const count = await redis.get(`book:${title}.count`);
-  await redis.publish("popularity", JSON.stringify({title: title, count}));
+  return c.json({results: search})
+})
 
-  return c.json({
-    results: search,
-    popularity: {
-      title: title,
-      count,
-    }
-  })
+//search tracker
+libraryRoute.get('/searchTracker', async(c) =>{
+  const title = c.req.query('q');
+  //ranking system
+  await redis.zIncrBy('book_popularity', 1, `${title}`);
+  const data = await redis.zRangeWithScores('book_popularity', -5, -1); 
+  data.reverse();
+  const rankings = data.map((item) =>({
+    value: item.value,
+    score: item.score
+  }))
+  await redis.publish("popularity", JSON.stringify({rankings}))
 
+  return c.json({popularity: rankings})
 })
 
 // insert book to database

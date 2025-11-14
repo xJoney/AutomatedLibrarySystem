@@ -18,8 +18,8 @@ interface Book {
 }
 
 interface Popularity {
-  title: string
-  count: string
+  value: string
+  score: number
 }
 
 function SearchPage() {
@@ -41,7 +41,18 @@ function SearchPage() {
       const res = await client.api.library.search.$get({ query: { q } })
       return (await res.json()) as {
         results: Book[]
-        popularity: Popularity
+      }
+    },
+  })
+
+    const popularity = useQuery({
+    queryKey: ['popularity', q],
+    enabled: !!q,
+    queryFn: async () => {
+      //@ts-ignore
+      const res = await client.api.library.searchTracker.$get({ query: { q } })
+      return (await res.json()) as {
+        popularity: Popularity[]
       }
     },
   })
@@ -60,16 +71,18 @@ function SearchPage() {
         <p>No books found.</p>
       )}
 
-      {data?.popularity && (
-        <div className="mt-4 bg-slate-900 border border-slate-700 rounded p-3">
-          <h2 className="text-lg font-semibold mb-2">Popularity</h2>
-          <p className="text-gray-300">
-            <span className="font-medium">{data?.popularity.title}</span> has been
-            searched <span className="text-blue-400">{data?.popularity.count}</span>{' '}
-            times.
-          </p>
-        </div>
-      )}
+  {popularity.data?.popularity && (
+    <div className="mt-6 bg-slate-900 border border-slate-700 rounded p-3">
+      <h2 className="text-lg font-semibold mb-2">Top 5 Searches</h2>
+      <ol className="list-decimal list-inside text-gray-300">
+        {popularity.data.popularity.map((book, i) => (
+          <li key={i}>
+            {book.value} — <span className="text-blue-400">{book.score}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )}
     </div>
   ) 
 }
