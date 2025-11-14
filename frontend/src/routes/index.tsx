@@ -11,6 +11,7 @@ interface Book {
   id: number
   title: string
   desc: string
+  coverURL: string
 }
 
 const client = hc<ApiRoutes>('/')
@@ -33,22 +34,39 @@ function Index() {
 
   return (
     <>
-  <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col items-center py-16 px-6">
-      <h1 className="text-4xl font-bold text-center mb-12 tracking-wide text-gray-50">
-        Book Library
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-6xl">
-        {data?.books.map((book) => (
+    <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col items-start py-16 px-6">
+      <h1 className="text-4xl font-bold mb-4 tracking-wide text-gray-50 pl-4"> Popular</h1>
+      <div className="flex gap-6 w-full overflow-x-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 snap-x snap-mandatory">
+        {data?.books.map((book) => (        
           <div
             key={book.id}
-            className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
+            className="min-w-[350px] bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
                        hover:shadow-indigo-600/20 hover:border-indigo-500 transition-all duration-300
                        hover:scale-[1.03]">
+            <img src={book.coverURL} alt={book.title}  className="w-full h-120 object-cover rounded-xl mb-4" />
             <h2 className="text-xl font-semibold text-gray-50 mb-2">
               {book.title}
             </h2>
             <p className="text-gray-400 leading-relaxed">{book.desc}</p>
           </div>
+
+        ))}
+      </div>
+      <h1 className="text-4xl font-bold mb-4 tracking-wide text-gray-50 pl-4">Genre 1</h1>
+      <div className="flex gap-6 w-full overflow-x-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 snap-x snap-mandatory">
+        {data?.books.map((book) => (        
+          <div
+            key={book.id}
+            className="min-w-[350px] bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
+                       hover:shadow-indigo-600/20 hover:border-indigo-500 transition-all duration-300
+                       hover:scale-[1.03]">
+            <img src={book.coverURL} alt={book.title}  className="w-full h-120 object-cover rounded-xl mb-4" />
+            <h2 className="text-xl font-semibold text-gray-50 mb-2">
+              {book.title}
+            </h2>
+            <p className="text-gray-400 leading-relaxed">{book.desc}</p>
+          </div>
+
         ))}
       </div>
       {data.books.length === 0 && (

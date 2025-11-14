@@ -12,6 +12,7 @@ const bookSchema = z.object({
     id: z.number().int().positive(),
     title: z.string().min(3).max(50),
     desc: z.string(),
+    coverURL: z.string()
     // num: z.number().int().positive() //if wanted to add number   
 })
 
