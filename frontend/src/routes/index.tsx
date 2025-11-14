@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 import {useQuery} from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import { type ApiRoutes } from "../../../shared/api-routes"
@@ -12,6 +12,11 @@ interface Book {
   title: string
   desc: string
   coverURL: string
+}
+
+interface Popularity {
+  value: string
+  score: number
 }
 
 const client = hc<ApiRoutes>('/')
@@ -28,8 +33,28 @@ async function getBooks():Promise<{ books: Book[] }>{
 
 function Index() {
   const {isPending, error, data} = useQuery({ queryKey: ['books'], queryFn: getBooks})
+
+
+  const popularity = useQuery({
+    queryKey: ['popularity'],
+    queryFn: async () => {
+      //@ts-ignore
+      const res = await client.api.library.searchTracker.$get()
+      return (await res.json()) as {
+        popularity: Popularity[]
+      }
+    },
+  })
+
   if (isPending) return "Loading.."
   if (error) return "an error has occured: " + error.message;
+
+  const popularBooks = popularity.data?.popularity
+  ?.map((p) => {
+    const book = data?.books.find((b) => b.title === p.value) // don't understand but it works
+    return book ? { ...book, score: p.score } : null
+  })
+  .filter(Boolean) as (Book & { score: number })[]
 
 
   return (
@@ -37,7 +62,7 @@ function Index() {
     <div className="min-h-screen bg-slate-900 text-gray-100 flex flex-col items-start py-16 px-6">
       <h1 className="text-4xl font-bold mb-4 tracking-wide text-gray-50 pl-4"> Popular</h1>
       <div className="flex gap-6 w-full overflow-x-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 snap-x snap-mandatory">
-        {data?.books.map((book) => (        
+        {popularBooks.map((book) => (        
           <div
             key={book.id}
             className="min-w-[350px] bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
