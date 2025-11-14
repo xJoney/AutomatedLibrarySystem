@@ -4,6 +4,7 @@ import {z} from "zod"
 import {db} from "../db/"
 import { books } from "../db/schema"
 import { eq, like, ilike } from "drizzle-orm"
+import { redis } from "../redis";
 
 
 
@@ -47,8 +48,24 @@ libraryRoute.get("/", async (c) => {
 libraryRoute.get('/search', async(c) => {
   const title = c.req.query('q');
   const search = await db.select().from(books).where(ilike(books.title,`%${title}%`));
-  return c.json(search)
 
+  return c.json({results: search})
+})
+
+//search tracker
+libraryRoute.get('/searchTracker', async(c) =>{
+  const title = c.req.query('q');
+  //ranking system
+  await redis.zIncrBy('book_popularity', 1, `${title}`);
+  const data = await redis.zRangeWithScores('book_popularity', -5, -1); 
+  data.reverse();
+  const rankings = data.map((item) =>({
+    value: item.value,
+    score: item.score
+  }))
+  await redis.publish("popularity", JSON.stringify({rankings}))
+
+  return c.json({popularity: rankings})
 })
 
 // insert book to database

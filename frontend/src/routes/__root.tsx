@@ -2,17 +2,25 @@ import { createRootRoute, Link, Outlet, useNavigate } from '@tanstack/react-rout
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { useState } from 'react'
 import { useAuth } from '../lib/auth'
+import { hc } from 'hono/client'
+import type { ApiRoutes } from '../../../shared/api-routes'
+
+
+const client = hc<ApiRoutes>('/')
+
 
 function NavBar() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const submit = async(submit: React.FormEvent) => {
+    submit.preventDefault()
     if (!query.trim()) {
       return
     }
+    //@ts-ignore
+    await client.api.library['search-tracker'].$get({q: query})
     navigate({ to: '/search', search: { q: query } })
   }
 
