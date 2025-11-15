@@ -15,6 +15,7 @@ interface Book {
   id: number
   title: string
   desc: string
+  coverURL: string
 }
 
 interface Popularity {
@@ -58,18 +59,36 @@ function SearchPage() {
   })
 
   return(
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Results for “{q}”</h1>
-      {data?.results?.length ? (
-        data.results.map((book) => (
-          <div key={book.id} className="bg-slate-800 p-3 mb-2 rounded">
-            <h2 className="font-semibold">{book.title}</h2>
-            <p className="text-gray-400">{book.desc}</p>
-          </div>
-        ))
-      ) : (
-        <p>No books found.</p>
-      )}
+    <div className="p-4 flex justify-center">
+      <div className="w-full max-w-3xl">
+        <div className="border border-gray-700">
+          <h1 className="text-2xl font-bold mb-6 text-center">
+          Results for “{q}”
+          </h1>
+    
+          {data?.results?.length ? (
+            data.results.map((book) => (
+              <div
+                key={book.id}
+                className="flex items-center gap-6 p-4 mb-4 rounded-xl border border-gray-700"
+              >
+                <img
+                  src={book.coverURL}
+                  alt={book.title}
+                  className="w-20 h-32 object-contain rounded-md"
+                />
+
+                <div className="flex flex-col">
+                  <h2 className="text-lg font-semibold">{book.title}</h2>
+                  <p className="text-gray-400 text-sm">{book.desc}</p>
+                </div>
+              </div>
+          ))
+          ) : (
+            <p>No books found.</p>
+          )}
+        </div>
+    </div>
 
   {popularity.data?.popularity && (
     <div className="mt-6 bg-slate-900 border border-slate-700 rounded p-3">

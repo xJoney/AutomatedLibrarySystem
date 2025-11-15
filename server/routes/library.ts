@@ -12,6 +12,7 @@ const bookSchema = z.object({
     id: z.number().int().positive(),
     title: z.string().min(3).max(50),
     desc: z.string(),
+    coverURL: z.string()
     // num: z.number().int().positive() //if wanted to add number   
 })
 
@@ -57,7 +58,7 @@ libraryRoute.get('/searchTracker', async(c) =>{
   const title = c.req.query('q');
   //ranking system
   await redis.zIncrBy('book_popularity', 1, `${title}`);
-  const data = await redis.zRangeWithScores('book_popularity', -5, -1); 
+  const data = await redis.zRangeWithScores('book_popularity', -10, -1); 
   data.reverse();
   const rankings = data.map((item) =>({
     value: item.value,

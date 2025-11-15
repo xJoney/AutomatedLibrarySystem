@@ -14,5 +14,6 @@ export const books = pgTable("books", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   desc: text("desc").notNull(),
+  coverURL: text("cover_url").notNull(), 
   createdAt: timestamp("created_at").defaultNow(),
 });
