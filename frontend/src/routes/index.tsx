@@ -49,10 +49,16 @@ function Index() {
   if (isPending) return "Loading.."
   if (error) return "an error has occured: " + error.message;
 
-  const popularBooks = popularity.data?.popularity
-  ?.map((p) => {
-    const book = data?.books.find((b) => b.title === p.value) // don't understand but it works
-    return book ? { ...book, score: p.score } : null
+  const popularBooks = popularity.data?.popularity?.map((p) => {
+    const book = data?.books.find((b) => b.title === p.value) 
+    if (!book){
+      return null
+    }
+
+    return{
+      ...book,
+      score: p.score
+    }
   })
   .filter(Boolean) as (Book & { score: number })[]
 
