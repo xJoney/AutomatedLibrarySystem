@@ -39,7 +39,7 @@ function Index() {
     queryKey: ['popularity'],
     queryFn: async () => {
       //@ts-ignore
-      const res = await client.api.library.searchTracker.$get()
+      const res = await client.api.library.popularity.$get()
       return (await res.json()) as {
         popularity: Popularity[]
       }

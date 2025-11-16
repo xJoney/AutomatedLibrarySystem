@@ -20,7 +20,7 @@ function NavBar() {
       return
     }
     //@ts-ignore
-    await client.api.library['search-tracker'].$get({q: query})
+    await client.api.library.searchTracker.$get({q: query})
     navigate({ to: '/search', search: { q: query } })
   }
 
