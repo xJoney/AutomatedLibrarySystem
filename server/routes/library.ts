@@ -53,21 +53,34 @@ libraryRoute.get('/search', async(c) => {
   return c.json({results: search})
 })
 
-//search tracker
+
+
+//search tracker - job queued through Redis to background worker
 libraryRoute.get('/searchTracker', async(c) =>{
   const title = c.req.query('q');
-  //ranking system
-  await redis.zIncrBy('book_popularity', 1, `${title}`);
-  const data = await redis.zRangeWithScores('book_popularity', -10, -1); 
-  data.reverse();
-  const rankings = data.map((item) =>({
-    value: item.value,
-    score: item.score
-  }))
-  await redis.publish("popularity", JSON.stringify({rankings}))
-
-  return c.json({popularity: rankings})
+  await redis.lPush("rankingQueue", JSON.stringify({ query: title, ts: Date.now() }));
+  if(!title){
+    return c.json({error: "empty query"}, 400)
+  }
+  return c.json({status: "job queued"})
 })
+
+//popularity - returns the updated list stored in Redis
+libraryRoute.get('/popularity', async(c) =>{
+  const cached = await redis.get("popularityCache");
+  let data;
+
+  if(cached===null){
+    data = [];
+  }
+  else{
+    data = JSON.parse(cached);
+  }
+  return c.json({popularity: data})
+})
+
+
+
 
 // insert book to database
 libraryRoute.post("/", zValidator("json", createPostSchema), async (c) => {
@@ -88,30 +101,3 @@ libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
 })
 
 
-// CRUD operations
-// .get("/", async(c) => {
-//     return c.json({books: fakeBooks})
-// })
-
-
-// //checks with zValidator before running post
-// .post("/", zValidator("json", createPostSchema),async(c) => {
-//     const data = await c.req.valid("json")
-//     const book = createPostSchema.parse(data)
-//     fakeBooks.push({...book, id: fakeBooks.length+1})
-//     c.status(201)
-//     return c.json(book)
-// })
-
-
-
-// .delete("/:id{[0-9]+}", (c) =>{
-//     const id = Number.parseInt(c.req.param("id"));
-//     const index = fakeBooks.findIndex(book => book.id === id)
-//     if (index === -1){
-//         return c.notFound()
-//     }
-//     const deletedBook = fakeBooks.splice(index,1)[0]
-//     return c.json({book: deletedBook})
-// })
-//.put
