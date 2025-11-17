@@ -33,16 +33,28 @@ function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: async (values: LoginSchema) => {
-      const res = await client.api.users.login.$post({ json: values })
+      const res = await client.api.users.login.$post({ json: values });
+      const data = await res.json();
+
+      // errror check
       if (!res.ok) {
-        throw new Error((await res.json() as any).error || 'Login failed')
+        throw new Error((data as { error: string }).error);
       }
+
+
+      // Save token
+      const typed = data as { message: string; token: string };
+      localStorage.setItem("token", typed.token);
+      return typed;
     },
+
     onSuccess: () => {
-      login() // Trigger a refetch of the user
-      navigate({ to: '/' })
+      console.log("Stored token:", localStorage.getItem("token"));
+      login();
+      navigate({ to: '/' });
     },
-  })
+  });
+
 
   return (
     <div className="p-4 max-w-md mx-auto">
