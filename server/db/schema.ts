@@ -17,3 +17,13 @@ export const books = pgTable("books", {
   coverURL: text("cover_url").notNull(), 
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const book_rentals = pgTable("book_rentals", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  bookId: integer("book_id").references(() => books.id),
+  status: text("status"),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  returnedAt: timestamp("returned_at"),
+});

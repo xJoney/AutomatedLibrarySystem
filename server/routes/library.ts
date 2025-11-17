@@ -2,7 +2,7 @@ import {Hono} from "hono"
 import { zValidator } from '@hono/zod-validator'
 import {z} from "zod"
 import {db} from "../db/"
-import { books } from "../db/schema"
+import { books, book_rentals } from "../db/schema"
 import { eq, like, ilike } from "drizzle-orm"
 import { redis } from "../redis";
 
@@ -101,3 +101,43 @@ libraryRoute.delete("/:id{[0-9]+}", async (c) =>{
 })
 
 
+
+
+
+
+
+// renting/reserving book operations
+
+// renting book
+libraryRoute.post("/rent", async (c) => {
+  const payload = c.get("jwtPayload");
+
+  if (!payload?.sub) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const userId = payload.sub;
+  const bookId = Number(c.req.query("bookId"));
+
+  await db.insert(book_rentals).values({
+    userId,
+    bookId,
+    status: "rented"
+  });
+
+  return c.json({ ok: true });
+});
+
+
+// // reserver book
+// libraryRoute.post("/reserve", async (c) =>{
+//   const { id: userId } =c.get("jwtPayload")
+//   const bookId = Number(c.req.query('bookId'));
+
+//   const insert = await db.insert(book_rentals).values({
+//     userId,
+//     bookId,
+//     status: "reserved"
+//   })
+//   return c.json({ok:true})
+// })

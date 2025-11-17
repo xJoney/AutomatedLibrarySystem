@@ -95,7 +95,7 @@ export const userRoute = new Hono()
         path: "/",
       });
 
-      return c.json({ message: "Logged in successfully" });
+      return c.json({ message: "Logged in successfully", token });
     } catch (error) {
       console.error("Login Error:", error);
       return c.json({ error: "Internal Server Error" }, 500);
