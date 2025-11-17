@@ -42,7 +42,7 @@ function Item() {
     console.log(book)
 
 
-    
+
     // rent button
     const rentSubmit = async(submit: React.FormEvent) => {
         submit.preventDefault()
@@ -61,10 +61,17 @@ function Item() {
 
     // reservation button
     const submit = async(submit: React.FormEvent) => {
-    submit.preventDefault()
-    console.log("reserve button pressed")
-    //@ts-ignore
-    // await client.api.library.update()
+        submit.preventDefault()
+        console.log("reserve button pressed")
+        //@ts-ignore
+        const res = await client.api.library.reserve.$post({
+            query: {bookId: String(id)},
+            header: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        }
+        })
+        console.log(localStorage.getItem("token"))
+        console.log(res)
     }
 
 

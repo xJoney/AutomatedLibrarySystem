@@ -129,15 +129,22 @@ libraryRoute.post("/rent", async (c) => {
 });
 
 
-// // reserver book
-// libraryRoute.post("/reserve", async (c) =>{
-//   const { id: userId } =c.get("jwtPayload")
-//   const bookId = Number(c.req.query('bookId'));
+// reserver book
+libraryRoute.post("/reserve", async (c) =>{
+  const payload = c.get("jwtPayload");
 
-//   const insert = await db.insert(book_rentals).values({
-//     userId,
-//     bookId,
-//     status: "reserved"
-//   })
-//   return c.json({ok:true})
-// })
+  if (!payload?.sub) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const userId = payload.sub;
+  const bookId = Number(c.req.query("bookId"));
+
+  await db.insert(book_rentals).values({
+    userId,
+    bookId,
+    status: "reserve"
+  });
+
+  return c.json({ ok: true });
+})
