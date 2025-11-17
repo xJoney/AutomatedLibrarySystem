@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router'
+import { createFileRoute, useSearch, Link } from '@tanstack/react-router'
 import {useQuery} from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import { type ApiRoutes } from "../../../shared/api-routes"
@@ -69,8 +69,10 @@ function Index() {
       <h1 className="text-4xl font-bold mb-4 tracking-wide text-gray-50 pl-4"> Popular</h1>
       <div className="flex gap-6 w-full overflow-x-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 snap-x snap-mandatory">
         {popularBooks.map((book) => (        
-          <div
+          <Link
             key={book.id}
+            to = "/item"
+            search={{ id: book.id }}
             className="min-w-[350px] bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
                        hover:shadow-indigo-600/20 hover:border-indigo-500 transition-all duration-300
                        hover:scale-[1.03]">
@@ -79,15 +81,17 @@ function Index() {
               {book.title}
             </h2>
             <p className="text-gray-400 leading-relaxed">{book.desc}</p>
-          </div>
+          </Link>
 
         ))}
       </div>
       <h1 className="text-4xl font-bold mb-4 tracking-wide text-gray-50 pl-4">Genre 1</h1>
       <div className="flex gap-6 w-full overflow-x-auto px-4 py-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800 snap-x snap-mandatory">
         {data?.books.map((book) => (        
-          <div
+          <Link
             key={book.id}
+            to = "/item"
+            search={{id: book.id}}
             className="min-w-[350px] bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 border border-slate-700 shadow-lg
                        hover:shadow-indigo-600/20 hover:border-indigo-500 transition-all duration-300
                        hover:scale-[1.03]">
@@ -96,8 +100,7 @@ function Index() {
               {book.title}
             </h2>
             <p className="text-gray-400 leading-relaxed">{book.desc}</p>
-          </div>
-
+          </Link>
         ))}
       </div>
       {data.books.length === 0 && (
