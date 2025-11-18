@@ -10,8 +10,13 @@ export const Route = createFileRoute('/signup')({
   component: SignupPage,
 })
 
-const client = hc<ApiRoutes>('/')
-
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
 const signupSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email address'),

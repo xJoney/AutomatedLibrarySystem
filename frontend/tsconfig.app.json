@@ -22,7 +22,14 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+
+    "baseUrl": ".",
+    "paths": {
+      "hono": ["./node_modules/hono"],
+      "hono/*": ["./node_modules/hono/*"],
+    }
   },
   "include": ["src"]
 }

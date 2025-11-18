@@ -1,6 +1,10 @@
 import { createClient } from 'redis';
 
-const redis = createClient();
+// const redis = createClient();
+
+const redis = createClient({
+  url: process.env.REDIS_URL || "redis://redis:6379"
+});
 await redis.connect();
 
 console.log("worker: Listening for jobs..");

@@ -1,0 +1,16 @@
+FROM oven/bun:1 AS builder
+
+WORKDIR /app
+COPY package.json bun.lockb* ./
+RUN bun install
+
+COPY . .
+RUN bun run build
+
+FROM oven/bun:1 AS prod
+
+WORKDIR /app/dist
+COPY --from=builder /app/dist ./
+
+EXPOSE 80
+CMD ["bunx", "serve", "-s", ".", "-l", "80"]

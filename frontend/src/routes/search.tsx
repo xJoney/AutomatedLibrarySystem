@@ -1,4 +1,4 @@
-import { createFileRoute, useSearch } from '@tanstack/react-router'
+import { createFileRoute, useSearch, Link } from '@tanstack/react-router'
 import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 import { useQuery } from '@tanstack/react-query'
@@ -9,8 +9,13 @@ export const Route = createFileRoute('/search')({
 })
 
 
-const client = hc<ApiRoutes>('/')
-
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
 interface Book {
   id: number
   title: string
@@ -68,10 +73,12 @@ function SearchPage() {
     
           {data?.results?.length ? (
             data.results.map((book) => (
-              <div
-                key={book.id}
-                className="flex items-center gap-6 p-4 mb-4 rounded-xl border border-gray-700"
-              >
+            <Link
+              key={book.id}
+              to="/item"         
+              search={{ id: book.id }}
+              className="flex items-center gap-6 p-4 mb-4 rounded-xl border border-gray-700 hover:bg-gray-800 transition-colors"
+            > 
                 <img
                   src={book.coverURL}
                   alt={book.title}
@@ -82,7 +89,7 @@ function SearchPage() {
                   <h2 className="text-lg font-semibold">{book.title}</h2>
                   <p className="text-gray-400 text-sm">{book.desc}</p>
                 </div>
-              </div>
+              </Link>
           ))
           ) : (
             <p>No books found.</p>
@@ -90,7 +97,7 @@ function SearchPage() {
         </div>
     </div>
 
-  {popularity.data?.popularity && (
+  {/* {popularity.data?.popularity && (
     <div className="mt-6 bg-slate-900 border border-slate-700 rounded p-3">
       <h2 className="text-lg font-semibold mb-2">Top 5 Searches</h2>
       <ol className="list-decimal list-inside text-gray-300">
@@ -101,7 +108,7 @@ function SearchPage() {
         ))}
       </ol>
     </div>
-  )}
+  )} */}
     </div>
   ) 
 }

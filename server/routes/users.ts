@@ -88,14 +88,22 @@ export const userRoute = new Hono()
       const secret = process.env.JWT_SECRET!;
       const token = await sign(payload, secret);
 
+      // setCookie(c, "auth_token", token, {
+      //   httpOnly: true,
+      //   secure: process.env.NODE_ENV === "production",
+      //   sameSite: "Lax",
+      //   path: "/",
+      // });
+
       setCookie(c, "auth_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Lax",
-        path: "/",
+      httpOnly: true,
+      secure: false,     // MUST be false on localhost
+      sameSite: "Lax",  // MUST be None for cross-origin cookies
+      domain: "localhost",
+      path: "/",
       });
 
-      return c.json({ message: "Logged in successfully" });
+      return c.json({ message: "Logged in successfully", token });
     } catch (error) {
       console.error("Login Error:", error);
       return c.json({ error: "Internal Server Error" }, 500);

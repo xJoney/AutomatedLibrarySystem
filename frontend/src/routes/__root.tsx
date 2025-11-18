@@ -6,7 +6,20 @@ import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 
 
-const client = hc<ApiRoutes>('/')
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+    const token = localStorage.getItem("token");
+
+    return fetch(input, {
+      ...init,
+      credentials: "include", // REQUIRED for cookies to work
+      headers: {
+        ...(init?.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}), // use only when exists
+      },
+    });
+  },
+});
 
 
 function NavBar() {
@@ -31,6 +44,9 @@ function NavBar() {
       </Link>
       <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
         About
+      </Link>
+      <Link to="/dashboard" className="[&.active]:font-bold hover:text-indigo-400">
+        Dashboard
       </Link>
       <div className="flex items-center gap-4 ml-auto">
         {isAuthenticated ? (
