@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    container_name: autolib-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: autolib-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+      - websocket
+    environment:
+    - VITE_API_URL=http://backend:3000
+    - JWT_SECRET=${JWT_SECRET}
+    - DATABASE_URL=${DATABASE_URL}
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.backend
+    container_name: autolib-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+    restart: always
+    depends_on:
+      - redis
+
+  websocket:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.ws
+    container_name: autolib-ws
+    ports:
+      - "4000:4000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    restart: always
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.worker
+    container_name: autolib-worker
+    environment:
+      - REDIS_URL=redis://redis:6379
+    restart: always
+    depends_on:
+      - redis
