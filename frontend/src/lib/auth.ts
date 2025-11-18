@@ -2,7 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 
-const client = hc<ApiRoutes>('/')
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit): Promise<Response> =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
+
 
 // Type for the user data returned from the /me endpoint
 export interface User {
@@ -11,8 +18,15 @@ export interface User {
   email: string
 }
 
+
+
+// updated to include authorization 
 async function fetchCurrentUser(): Promise<User> {
-  const res = await client.api.users.me.$get()
+  const res = await client.api.users.me.$get({    
+      header: {
+      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      } 
+  ,})
   if (!res.ok) {
     throw new Error('Failed to fetch user')
   }

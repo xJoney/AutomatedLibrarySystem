@@ -9,8 +9,13 @@ export const Route = createFileRoute('/search')({
 })
 
 
-const client = hc<ApiRoutes>('/')
-
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
 interface Book {
   id: number
   title: string

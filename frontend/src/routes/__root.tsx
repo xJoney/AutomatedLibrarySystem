@@ -6,7 +6,20 @@ import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 
 
-const client = hc<ApiRoutes>('/')
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+    const token = localStorage.getItem("token");
+
+    return fetch(input, {
+      ...init,
+      credentials: "include", // REQUIRED for cookies to work
+      headers: {
+        ...(init?.headers || {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}), // use only when exists
+      },
+    });
+  },
+});
 
 
 function NavBar() {

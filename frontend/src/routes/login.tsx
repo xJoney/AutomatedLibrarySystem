@@ -11,7 +11,13 @@ export const Route = createFileRoute('/login')({
   component: LoginPage,
 })
 
-const client = hc<ApiRoutes>('/')
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),

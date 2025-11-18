@@ -19,8 +19,13 @@ interface Popularity {
   score: number
 }
 
-const client = hc<ApiRoutes>('/')
-
+const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
+    fetch(input, {
+      ...init,
+      credentials: "include",
+    }),
+});
 async function getBooks():Promise<{ books: Book[] }>{
   //@ts-ignore - compiler expects a known type, hono listing as
   const res = await client.api.library.$get()
