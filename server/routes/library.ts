@@ -3,7 +3,7 @@ import { zValidator } from '@hono/zod-validator'
 import {z} from "zod"
 import {db} from "../db/"
 import { books, book_rentals } from "../db/schema"
-import { eq, like, ilike } from "drizzle-orm"
+import { eq, like, ilike, and, ne} from "drizzle-orm"
 import { redis } from "../redis";
 
 
@@ -119,6 +119,19 @@ libraryRoute.post("/rent", async (c) => {
   const userId = payload.sub;
   const bookId = Number(c.req.query("bookId"));
 
+
+  // renting logic check
+  const taken = await db.select().from(book_rentals).where(
+    and(
+      eq(book_rentals.bookId, bookId),
+      ne(book_rentals.status, "returned")
+    )
+  );
+
+  if (taken.length > 0) {
+    return c.json({ error: "Book is already rented or reserved." },409);
+  }
+
   await db.insert(book_rentals).values({
     userId,
     bookId,
@@ -140,6 +153,19 @@ libraryRoute.post("/reserve", async (c) =>{
   const userId = payload.sub;
   const bookId = Number(c.req.query("bookId"));
 
+  
+  // renting logic check
+  const taken = await db.select().from(book_rentals).where(
+    and(
+      eq(book_rentals.bookId, bookId),
+      ne(book_rentals.status, "returned")
+    )
+  );
+
+  if (taken.length > 0) {
+    return c.json({ error: "Book already rented/reserved." }, 409);
+  }
+
   await db.insert(book_rentals).values({
     userId,
     bookId,
@@ -148,3 +174,48 @@ libraryRoute.post("/reserve", async (c) =>{
 
   return c.json({ ok: true });
 })
+
+
+
+// USER DASHBOARD
+
+//get all books from a user
+libraryRoute.get("/retrieveBooks", async (c) => {
+    const payload = c.get("jwtPayload");
+
+  if (!payload?.sub) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const userId = payload.sub;
+
+  const allBooks = await db.select({
+      rentalId: book_rentals.id,
+      bookId: books.id,
+      status: book_rentals.status,
+      title: books.title,
+      desc: books.desc,
+      coverURL: books.coverURL,
+  })
+  .from(book_rentals)
+  .innerJoin(books, eq(book_rentals.bookId, books.id))
+  .where(eq(book_rentals.userId, userId));
+  
+  return c.json({ books: allBooks });
+})
+
+libraryRoute.delete("/rental/:id", async (c) => {
+  // verify logged-in user
+  const payload = c.get("jwtPayload");
+  if (!payload?.sub) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const userId = payload.sub;
+  const rentalId = Number(c.req.param("id"));
+
+  // delete rental record
+  await db.delete(book_rentals).where(eq(book_rentals.id, rentalId));
+
+  return c.json({ ok: true });
+});
