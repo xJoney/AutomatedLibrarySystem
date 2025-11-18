@@ -3,12 +3,42 @@ import { logger } from 'hono/logger'
 import { libraryRoute } from './routes/library'
 import { userRoute } from './routes/users'
 import { verify } from "hono/jwt";
-
+import { cors } from "hono/cors"; 
 
 const app = new Hono()
 
+// Allow frontend using cors
+app.use(
+  '*',
+  cors({
+    origin: 'http://localhost:5173', // or "*""
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+  })
+);
+
 // logs 
 app.use('*', logger())
+
+
+app.use("/api/library/*", async (c, next) => {
+  const auth = c.req.header("Authorization");
+
+  if (auth?.startsWith("Bearer ")) {
+    const token = auth.slice(7);
+    try {
+      const payload = await verify(token, process.env.JWT_SECRET!);
+      c.set("jwtPayload", payload);
+    } catch (err) {
+      console.error("JWT VERIFY ERROR:", err);
+    }
+  }
+
+  await next();
+});
+
+
 
 
 /*
@@ -48,5 +78,5 @@ const api = app.basePath('/api')
                 .route('/library', libraryRoute)
                 .route('/users', userRoute)
 
-export default app
+export default api
 export type ApiRoutes = typeof api
