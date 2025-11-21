@@ -45,8 +45,8 @@ function NavBar() {
       <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
         About
       </Link>
-      <Link to="/dashboard" className="[&.active]:font-bold hover:text-indigo-400">
-        Dashboard
+      <Link to="/account" className="[&.active]:font-bold hover:text-indigo-400">
+        Account
       </Link>
       <div className="flex items-center gap-4 ml-auto">
         {isAuthenticated ? (

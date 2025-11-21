@@ -4,8 +4,8 @@ import type { ApiRoutes } from '../../../shared/api-routes'
 import { useQuery,useQueryClient } from '@tanstack/react-query'
 
 
-export const Route = createFileRoute('/dashboard')({
-  component: Dashboard,
+export const Route = createFileRoute('/account')({
+  component: Account,
 })
 
 const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
@@ -25,7 +25,7 @@ interface Record {
   coverURL: string
 }
 
-function Dashboard() {  
+function Account() {  
 
   const queryClient = useQueryClient();
   const removeRental = async (rentalId: number) => {
