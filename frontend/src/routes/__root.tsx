@@ -45,15 +45,22 @@ function NavBar() {
       <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
         About
       </Link>
-      <Link to="/account" className="[&.active]:font-bold hover:text-indigo-400">
+      {isAuthenticated && (
+        <Link to="/account" className="[&.active]:font-bold hover:text-indigo-400">
         Account
-      </Link>
+        </Link>
+      )}
+
+
       <div className="flex items-center gap-4 ml-auto">
         {isAuthenticated ? (
           <>
             <span>Welcome, {user?.name}!</span>
             <button
-              onClick={() => logout()}
+              onClick={() =>{
+                logout()
+                navigate({to: '/'})
+            }}
               className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
             >
               Logout
