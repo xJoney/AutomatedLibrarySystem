@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -26,4 +26,10 @@ export const book_rentals = pgTable("book_rentals", {
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
   returnedAt: timestamp("returned_at"),
+});
+
+export const popularity_backup = pgTable("popularity_backup", {
+  id:serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow(),
+  rankings: jsonb("rankings").notNull()
 });

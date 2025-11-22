@@ -1,4 +1,4 @@
-import { pgTable, unique, serial, text, integer, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, unique, serial, text, integer, timestamp, jsonb } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -18,4 +18,10 @@ export const books = pgTable("books", {
 	title: text().notNull(),
 	desc: text().notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
+});
+
+export const popularity_backup = pgTable("popularity_backup", {
+	id:serial("id").primaryKey(),
+	createdAt: timestamp("created_at").defaultNow(),
+	rankings: jsonb("rankings").notNull()
 });

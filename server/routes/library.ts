@@ -2,8 +2,8 @@ import {Hono} from "hono"
 import { zValidator } from '@hono/zod-validator'
 import {z} from "zod"
 import {db} from "../db/"
-import { books, book_rentals } from "../db/schema"
-import { eq, like, ilike, and, ne} from "drizzle-orm"
+import { books, book_rentals, popularity_backup } from "../db/schema"
+import { eq, like, ilike, and, ne, desc} from "drizzle-orm"
 import { redis } from "../redis";
 
 
@@ -69,14 +69,16 @@ libraryRoute.get('/searchTracker', async(c) =>{
 libraryRoute.get('/popularity', async(c) =>{
   const cached = await redis.get("popularityCache");
   let data;
+  
+  // checks if cache already exists in redis and return array of rankings
+  if(cached){
+      return c.json({ popularity: JSON.parse(cached) });
+  }
 
-  if(cached===null){
-    data = [];
-  }
-  else{
-    data = JSON.parse(cached);
-  }
-  return c.json({popularity: data})
+  // for service restart, redis lose its data so pull backup list from db and set that as the new rankings
+  data = await db.select().from(popularity_backup).orderBy(desc(popularity_backup.createdAt)).limit(1);
+  const rankings = data[0].rankings
+  await redis.set("popularityCache", JSON.stringify(rankings))
 })
 
 
