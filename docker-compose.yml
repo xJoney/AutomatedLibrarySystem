@@ -61,3 +61,11 @@ services:
     restart: always
     depends_on:
       - redis
+
+  grafana:
+    image: grafana/grafana
+    container_name: autolib-grafana
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+
