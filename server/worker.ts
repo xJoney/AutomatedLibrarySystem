@@ -50,6 +50,6 @@ while(true){
     // NOTE: PLEASE do NOT remove serialized line. Needed to prevent Bun from corrupting the argument list
     const serialized = JSON.stringify(rankings); 
     await redis.set("popularityCache", serialized);
-    await redis.publish("rankingUpdates", serialized);
+    await redis.publish("popularity", serialized);
 
 }
