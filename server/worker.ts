@@ -1,4 +1,6 @@
 import { createClient } from 'redis';
+import { db } from "./db";
+import { popularity_backup } from "./db/schema";
 
 // const redis = createClient();
 
@@ -6,8 +8,12 @@ const redis = createClient({
   url: process.env.REDIS_URL || "redis://redis:6379"
 });
 await redis.connect();
-
 console.log("worker: Listening for jobs..");
+
+
+const interval = 3600000 // backup time set to 1 hours
+let lastBackupTime = 0;
+
 
 while(true){
     const result = await redis.brPop("rankingQueue", 0); // brPop= blocking right pop -> listens for jobs in rakning queue, 0 blocks forever, allows worker to run 24/7
@@ -52,4 +58,14 @@ while(true){
     await redis.set("popularityCache", serialized);
     await redis.publish("popularity", serialized);
 
+
+ 
+    // update rankings every 24 hours
+    const temp = Date.now()
+    if(temp - lastBackupTime >= interval){
+        await db.insert(popularity_backup).values({
+                rankings: rankings
+        })
+        lastBackupTime = temp
+    }
 }
