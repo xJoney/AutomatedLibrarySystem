@@ -11,6 +11,7 @@ import { redis } from "../redis";
 const bookSchema = z.object({
     id: z.number().int().positive(),
     title: z.string().min(3).max(50),
+    genre: z.string(),
     desc: z.string(),
     coverURL: z.string()
     // num: z.number().int().positive() //if wanted to add number   
@@ -53,6 +54,12 @@ libraryRoute.get('/search', async(c) => {
   return c.json({results: search})
 })
 
+// search query by genre
+libraryRoute.get('/search_genre', async(c) => {
+  const genre = c.req.query('genre');
+  const search = await db.select().from(books).where(like(books.genre,`%${genre}%`));
+  return c.json({results: search})
+})
 
 
 //search tracker - job queued through Redis to background worker
