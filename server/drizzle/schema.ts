@@ -7,7 +7,7 @@ export const users = pgTable("users", {
 	id: serial().primaryKey().notNull(),
 	name: text().notNull(),
 	email: text().notNull(),
-	age: integer(),
+	// age: integer(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 }, (table) => [
 	unique("users_email_unique").on(table.email),
@@ -17,6 +17,8 @@ export const books = pgTable("books", {
 	id: serial().primaryKey().notNull(),
 	title: text().notNull(),
 	desc: text().notNull(),
+	genre: text().notNull(),
+	coverURL: text("cover_url").notNull(),
 	createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
 });
 
