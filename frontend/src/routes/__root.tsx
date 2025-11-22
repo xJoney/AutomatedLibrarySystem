@@ -17,11 +17,11 @@ function NavBar() {
   }
 
   return (
-    <nav className="flex items-center gap-4 p-4 bg-slate-800 text-gray-200 shadow-md">
-      <Link to="/" className="[&.active]:font-bold hover:text-indigo-400">
+    <nav className="flex items-center gap-4 p-4 bg-gray-100 text-gray-800 shadow-md">
+      <Link to="/" className="[&.active]:font-bold hover:text-indigo-600">
         Home
       </Link>
-      <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
+      <Link to="/about" className="[&.active]:font-bold hover:text-indigo-600">
         About
       </Link>
       <div className="flex items-center gap-4 ml-auto">
@@ -30,17 +30,17 @@ function NavBar() {
             <span>Welcome, {user?.name}!</span>
             <button
               onClick={() => logout()}
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm"
+              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm"
             >
               Logout
             </button>
           </>
         ) : (
           <>
-            <Link to="/login" className="[&.active]:font-bold hover:text-indigo-400">
+            <Link to="/login" className="[&.active]:font-bold hover:text-indigo-600">
               Login
             </Link>
-            <Link to="/signup" className="[&.active]:font-bold hover:text-indigo-400">
+            <Link to="/signup" className="[&.active]:font-bold hover:text-indigo-600">
               Sign Up
             </Link>
           </>
@@ -51,11 +51,11 @@ function NavBar() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search books..."
-            className="rounded-md px-3 py-1 bg-slate-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="rounded-md px-3 py-1 bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <button
             type="submit"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded-md text-sm"
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded-md text-sm"
           >
             Search
           </button>
@@ -67,7 +67,7 @@ function NavBar() {
 
 function Root() {
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-900 text-gray-100">
+    <div className="min-h-screen w-full flex flex-col bg-white text-gray-800">
       <NavBar />
       <main className="flex-1">
         <Outlet />

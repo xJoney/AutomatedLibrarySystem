@@ -45,35 +45,35 @@ function LoginPage() {
   })
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Login</h1>
+    <div className="p-8 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-6 mt-16">
+      <h1 className="text-3xl font-bold text-center text-gray-900">Login</h1>
       <form
         onSubmit={handleSubmit((data) => mutation.mutate(data))}
-        className="space-y-4"
+        className="space-y-6"
       >
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="email">
+          <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="email">
             Email
           </label>
           <input
             id="email"
             type="email"
             {...register('email')}
-            className="w-full p-2 bg-slate-800 rounded border border-slate-700 focus:border-blue-500 focus:outline-none"
+            className="w-full p-3 bg-gray-100 rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1" htmlFor="password">
+          <label className="block text-sm font-medium mb-1 text-gray-700" htmlFor="password">
             Password
           </label>
           <input
             id="password"
             type="password"
             {...register('password')}
-            className="w-full p-2 bg-slate-800 rounded border border-slate-700 focus:border-blue-500 focus:outline-none"
+            className="w-full p-3 bg-gray-100 rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
           />
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">
@@ -83,7 +83,7 @@ function LoginPage() {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg transition-all"
           disabled={mutation.isPending}
         >
           {mutation.isPending ? 'Logging in...' : 'Login'}

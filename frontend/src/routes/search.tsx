@@ -2,54 +2,49 @@ import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 import { useQuery } from '@tanstack/react-query'
+import type { Book } from '../lib/types'
 
 export const Route = createFileRoute('/search')({
-    validateSearch: (search) => ({q: String(search.q ?? ''),}), //ensure url query is string
-    component: SearchPage,
+  validateSearch: (search) => ({ q: String(search.q ?? '') }),
+  component: SearchPage,
 })
-
 
 const client = hc<ApiRoutes>('/')
 
-interface Book {
-  id: number
-  title: string
-  desc: string
+async function searchBooks(q: string) {
+  const res = await client.api.library.search.$get({ query: { q } })
+  if (!res.ok) {
+    throw new Error('Search failed')
+  }
+  return (await res.json()) as Book[]
 }
 
 function SearchPage() {
-    const { q } = useSearch({from: '/search'}) //gets search query param from URL
-    /* 
-    NOTE:
-    queryKey -> caches data w/ key, no need to refetch
-    enabled -> make sure search not empty
-    queryfn -> function that fetches the data
+  const { q } = useSearch({ from: '/search' })
+  const { data: books = [], isPending, error } = useQuery({
+    queryKey: ['search', q],
+    enabled: !!q,
+    queryFn: () => searchBooks(q),
+  })
 
-    data, isPending, error can be added later
-    */
-    const{ data: books = []} = useQuery({
-        queryKey: ['search', q],
-        enabled: !!q,
-        queryFn: async () =>{
-            //@ts-ignore
-            const res = await client.api.library.search.$get({query: { q }})
-            return(await res.json()) as Book[]
-        },
-    })
-  return(
+  if (isPending) return <div className="p-8">Loading...</div>
+  if (error) return <div className="p-8 text-red-500">An error has occurred: {error.message}</div>
 
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Results for “{q}”</h1>
-      {books.length ? (
-        books.map((book) => (
-          <div key={book.id} className="bg-slate-800 p-3 mb-2 rounded">
-            <h2 className="font-semibold">{book.title}</h2>
-            <p className="text-gray-400">{book.desc}</p>
-          </div>
-        ))
-      ) : (
-        <p>No books found.</p>
-      )}
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Results for “{q}”</h1>
+      <div className="space-y-4">
+        {books.length > 0 ? (
+          books.map((book) => (
+            <div key={book.id} className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800">{book.title}</h2>
+              <p className="text-gray-600 mt-1">{book.desc}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No books found.</p>
+        )}
+      </div>
     </div>
-  ) 
+  )
 }
