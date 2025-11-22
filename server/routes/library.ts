@@ -86,6 +86,7 @@ libraryRoute.get('/popularity', async(c) =>{
   data = await db.select().from(popularity_backup).orderBy(desc(popularity_backup.createdAt)).limit(1);
   const rankings = data[0].rankings
   await redis.set("popularityCache", JSON.stringify(rankings))
+  return c.json({popularity: rankings})
 })
 
 
