@@ -68,4 +68,9 @@ services:
     ports:
       - "3001:3000"
     restart: unless-stopped
-
+    volumes:
+    - grafana_data:/var/lib/grafana
+    restart: always
+  
+volumes:
+  grafana_data:
