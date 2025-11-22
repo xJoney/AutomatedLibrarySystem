@@ -67,10 +67,9 @@ services:
     container_name: autolib-grafana
     ports:
       - "3001:3000"
-    restart: unless-stopped
+    restart: always
     volumes:
     - grafana_data:/var/lib/grafana
-    restart: always
   
 volumes:
   grafana_data:
