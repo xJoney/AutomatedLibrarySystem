@@ -1,5 +1,6 @@
 import { createFileRoute, useSearch, Link } from '@tanstack/react-router'
-import {useQuery} from '@tanstack/react-query'
+import {useQuery, useQueryClient} from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { hc } from 'hono/client'
 import { type ApiRoutes } from "../../../shared/api-routes"
 
@@ -50,7 +51,10 @@ function Index() {
         popularity: Popularity[]
       }
     },
-  })
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    placeholderData: (previous) => previous
+    })
 
   const classic = useQuery({
     queryKey: ['Classic'],
