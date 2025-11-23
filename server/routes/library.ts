@@ -65,10 +65,12 @@ libraryRoute.get('/search_genre', async(c) => {
 //search tracker - job queued through Redis to background worker
 libraryRoute.get('/searchTracker', async(c) =>{
   const title = c.req.query('q');
-  await redis.lPush("rankingQueue", JSON.stringify({ query: title, ts: Date.now() }));
+
   if(!title){
     return c.json({error: "empty query"}, 400)
   }
+
+  await redis.lPush("rankingQueue", JSON.stringify({ query: title, ts: Date.now() }));
   return c.json({status: "job queued"})
 })
 
