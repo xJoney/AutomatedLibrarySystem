@@ -53,7 +53,8 @@ function Index() {
     },
     refetchOnWindowFocus: false,
     staleTime: Infinity,
-    placeholderData: (previous) => previous
+    initialData: { popularity: [] },
+    refetchOnMount: "always"
     })
 
   const classic = useQuery({
@@ -81,18 +82,12 @@ function Index() {
   if (isPending) return "Loading.."
   if (error) return "an error has occured: " + error.message;
 
-  const popularBooks = popularity.data?.popularity?.map((p) => {
-    const book = data?.books.find((b) => b.title === p.value) 
-    if (!book){
-      return null
-    }
-
-    return{
-      ...book,
-      score: p.score
-    }
-  })
-  .filter(Boolean) as (Book & { score: number })[]
+  // connect scores with book properties and filters the list for duplicates/broken entries
+  const popularBooks = (popularity.data?.popularity ?? []).map((p) => {
+    const book = data?.books.find((b) => b.title === p.value)
+    if (!book) return null
+    return { ...book, score: p.score } //return all book vars + score
+  }).filter(Boolean) as (Book & { score: number })[]
 
 
   return (
