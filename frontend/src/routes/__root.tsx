@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useAuth } from '../lib/auth'
 import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
+import {useQuery, useQueryClient} from '@tanstack/react-query'
+import { useEffect } from 'react'
 
 
 const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
@@ -23,6 +25,31 @@ const client = hc<ApiRoutes>(import.meta.env.VITE_API_URL, {
 
 
 function NavBar() {
+  const queryClient = useQueryClient()
+
+    useEffect(() => {
+    const ws = new WebSocket(import.meta.env.VITE_WS_URL)
+    
+    ws.onopen = () => {
+      console.log("web socket connected")
+    }
+
+    ws.onmessage = (event) => {
+      console.log("web socket update received", event.data)
+      queryClient.invalidateQueries({ queryKey: ['popularity']})
+    }
+
+    ws.onerror =  (err) => {
+      console.error("Websocket error", err)
+    }
+
+    return () => {
+      ws.close()
+    }
+  
+  },[])
+
+
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuth()
@@ -33,7 +60,9 @@ function NavBar() {
       return
     }
     //@ts-ignore
-    await client.api.library.searchTracker.$get({q: query})
+    await client.api.library.searchTracker.$get({
+      query: { q: query }
+    })
     navigate({ to: '/search', search: { q: query } })
   }
 
