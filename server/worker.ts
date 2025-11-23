@@ -14,9 +14,12 @@ console.log("worker: Listening for jobs..");
 const interval = 3600000 // backup time set to 1 hours
 let lastBackupTime = 0;
 
+let lastPublishTime = 0
+const PUBLISH_INTERVAL = 2000 // 2 seconds
 
 while(true){
-    const result = await redis.brPop("rankingQueue", 0); // brPop= blocking right pop -> listens for jobs in rakning queue, 0 blocks forever, allows worker to run 24/7
+    console.log("Waiting for jobs...");
+    const result = await redis.blPop("rankingQueue", 0); // blPop= blocking left pop -> listens for jobs in rakning queue, 0 blocks forever, allows worker to run 24/7
     if (!result){continue;} // this line needed to satisfy TS null err
     const job = JSON.parse(result.element);
     const query = job.query;
@@ -56,11 +59,22 @@ while(true){
     // NOTE: PLEASE do NOT remove serialized line. Needed to prevent Bun from corrupting the argument list
     const serialized = JSON.stringify(rankings); 
     await redis.set("popularityCache", serialized);
-    await redis.publish("popularity", serialized);
+
+    // added timers so it doesn't spam broadcasts updates
+    const previous = await redis.get("lastPublishedRankings")
+    const now = Date.now()
+
+    // updates the cache, and publish popularity list
+    if(now - lastPublishTime >= PUBLISH_INTERVAL){
+        await redis.publish("popularity", serialized)
+        await redis.set("lastPublishedRankings", serialized)
+        console.log("PUBLISHED popularity update:", serialized)
+        lastPublishTime = now
+    }
 
 
  
-    // update rankings every 24 hours
+    // update rankings every 24 hours to the db
     const temp = Date.now()
     if(temp - lastBackupTime >= interval){
         await db.insert(popularity_backup).values({
