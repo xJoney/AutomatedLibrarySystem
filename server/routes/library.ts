@@ -80,8 +80,9 @@ libraryRoute.get('/popularity', async(c) =>{
   let data;
   
   // checks if cache already exists in redis and return array of rankings
-  if(cached){
-      return c.json({ popularity: JSON.parse(cached) });
+  // Only use cache if it's not empty
+  if (cached && cached !== "[]" && cached !== "null") {
+    return c.json({ popularity: JSON.parse(cached) });
   }
 
   // for service restart, redis lose its data so pull backup list from db and set that as the new rankings
