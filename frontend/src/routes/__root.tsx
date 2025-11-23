@@ -35,8 +35,9 @@ function NavBar() {
     }
 
     ws.onmessage = (event) => {
+      const rankings = JSON.parse(event.data)
       console.log("web socket update received", event.data)
-      queryClient.invalidateQueries({ queryKey: ['popularity']})
+      queryClient.setQueryData(['popularity'], { popularity: rankings})
     }
 
     ws.onerror =  (err) => {
