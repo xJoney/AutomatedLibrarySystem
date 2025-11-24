@@ -77,14 +77,18 @@ libraryRoute.get('/searchTracker', async(c) =>{
 //popularity - returns the updated list stored in Redis
 libraryRoute.get('/popularity', async(c) =>{
   const cached = await redis.get("popularityCache");
-  let data;
-  
+
+  let data;  
   // checks if cache already exists in redis and return array of rankings
   // Only use cache if it's not empty
-  if (cached && cached !== "[]" && cached !== "null") {
-    return c.json({ popularity: JSON.parse(cached) });
-  }
+  if (cached) {
+    const parsed = JSON.parse(cached);
 
+    // check if it contains a valid top 10 list
+    if (Array.isArray(parsed) && parsed.length >= 10) {
+      return c.json({ popularity: parsed });
+    }
+  }
   // for service restart, redis lose its data so pull backup list from db and set that as the new rankings
   data = await db.select().from(popularity_backup).orderBy(desc(popularity_backup.createdAt)).limit(1);
   const rankings = data[0].rankings
