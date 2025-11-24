@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    container_name: autolib-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    container_name: autolib-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+      - websocket
+    env_file:
+    - frontend/.env.demo
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.backend
+    container_name: autolib-backend
+    ports:
+      - "3000:3000"
+    restart: always
+    env_file:
+      - server/.env.demo
+    depends_on:
+      - redis
+
+  websocket:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.ws
+    container_name: autolib-ws
+    ports:
+      - "4000:4000"
+    env_file:
+      - server/.env.demo
+    restart: always
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: .
+      dockerfile: server/Dockerfile.worker
+    container_name: autolib-worker
+    env_file:
+      - server/.env.demo
+    restart: always
+    depends_on:
+      - redis
+
+  grafana:
+    image: grafana/grafana
+    container_name: autolib-grafana
+    ports:
+      - "3001:3000"
+    restart: always
+    volumes:
+    - grafana_data:/var/lib/grafana
+  
+volumes:
+  grafana_data:
