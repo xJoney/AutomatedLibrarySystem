@@ -51,10 +51,9 @@ function Index() {
         popularity: Popularity[]
       }
     },
-    refetchOnWindowFocus: false,
     staleTime: Infinity,
-    initialData: { popularity: [] },
-    refetchOnMount: "always"
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
     })
 
   const classic = useQuery({
