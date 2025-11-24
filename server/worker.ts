@@ -1,6 +1,7 @@
 import { createClient } from 'redis';
 import { db } from "./db";
 import { popularity_backup } from "./db/schema";
+import { desc } from "drizzle-orm";
 
 // const redis = createClient();
 
@@ -10,9 +11,37 @@ const redis = createClient({
 await redis.connect();
 console.log("worker: Listening for jobs..");
 
+type Ranking = {
+  value: string
+  score: number
+}
 
-const interval = 3600000 // backup time set to 1 hours
+/*
+24 hours = 86400000
+1 hour = 360000
+10 mins = 600000
+5 mins = 300000
+*/
 let lastBackupTime = 0;
+const interval = 300000 // backup time set to 5 mins
+
+const latestBackup = await db.select().from(popularity_backup).orderBy(desc(popularity_backup.createdAt)).limit(1)
+
+// this function handles the popularity ranking for when Redis server restarts/crashes
+if (latestBackup.length > 0) {
+    const rankings = latestBackup[0].rankings as unknown as Ranking[]
+    await redis.del("searchPopularity")
+
+    for (const item of rankings) { // Rebuild sorted set from DB
+
+        await redis.zAdd("searchPopularity", {
+            score: item.score,
+            value: item.value
+        })
+    }
+    await redis.set("popularityCache", JSON.stringify(rankings)) // Sync cache for frontend
+    console.log("Redis ranking engine rebuilt from DB backup")
+}
 
 let lastPublishTime = 0
 const PUBLISH_INTERVAL = 2000 // 2 seconds
@@ -41,7 +70,7 @@ while(true){
         "ZRANGE",
         "searchPopularity",
         "0",
-        "-1",
+        "9",
         "WITHSCORES",
         "REV"
     ]) as string[];
@@ -65,7 +94,7 @@ while(true){
     const now = Date.now()
 
     // updates the cache, and publish popularity list
-    if(now - lastPublishTime >= PUBLISH_INTERVAL){
+    if(serialized != previous && now - lastPublishTime >= PUBLISH_INTERVAL){
         await redis.publish("popularity", serialized)
         await redis.set("lastPublishedRankings", serialized)
         console.log("PUBLISHED popularity update:", serialized)
@@ -74,12 +103,11 @@ while(true){
 
 
  
-    // update rankings every 24 hours to the db
+    // update rankings every x millisecs to the db
     const temp = Date.now()
-    if(temp - lastBackupTime >= interval){
-        await db.insert(popularity_backup).values({
-                rankings: rankings
-        })
+    if (rankings.length >= 10 && temp - lastBackupTime >= interval) {
+        await db.insert(popularity_backup).values({ rankings })
+        console.log("DB BACKUP WRITTEN:", rankings.length, "items")
         lastBackupTime = temp
     }
 }
