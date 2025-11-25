@@ -72,9 +72,9 @@ function NavBar() {
       <Link to="/" className="[&.active]:font-bold hover:text-indigo-400">
         Home
       </Link>
-      <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
+      {/* <Link to="/about" className="[&.active]:font-bold hover:text-indigo-400">
         About
-      </Link>
+      </Link> */}
       {isAuthenticated && (
         <Link to="/account" className="[&.active]:font-bold hover:text-indigo-400">
         Account
