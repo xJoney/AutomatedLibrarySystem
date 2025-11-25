@@ -106,7 +106,7 @@ function Index() {
             <h2 className="text-xl font-semibold text-gray-50 mb-2">
               {book.title}
             </h2>
-            <p className="text-gray-400 leading-relaxed">{book.desc}</p>
+            {/* <p className="text-gray-400 leading-relaxed">{book.desc}</p> */}
           </Link>
 
         ))}
@@ -128,7 +128,7 @@ function Index() {
             <h2 className="text-xl font-semibold text-gray-50 mb-2">
               {book.title}
             </h2>
-            <p className="text-gray-400 leading-relaxed">{book.desc}</p>
+            {/* <p className="text-gray-400 leading-relaxed">{book.desc}</p> */}
           </Link>
         ))}
       </div>
@@ -148,7 +148,7 @@ function Index() {
             <h2 className="text-xl font-semibold text-gray-50 mb-2">
               {book.title}
             </h2>
-            <p className="text-gray-400 leading-relaxed">{book.desc}</p>
+            {/* <p className="text-gray-400 leading-relaxed">{book.desc}</p> */}
           </Link>
         ))}
       </div>
@@ -167,7 +167,7 @@ function Index() {
             <h2 className="text-xl font-semibold text-gray-50 mb-2">
               {book.title}
             </h2>
-            <p className="text-gray-400 leading-relaxed">{book.desc}</p>
+            {/* <p className="text-gray-400 leading-relaxed">{book.desc}</p> */}
           </Link>
         ))}
       </div>
