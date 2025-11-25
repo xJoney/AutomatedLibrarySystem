@@ -2,6 +2,7 @@ import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { hc } from 'hono/client'
 import type { ApiRoutes } from '../../../shared/api-routes'
 import { useQuery } from '@tanstack/react-query'
+import { verify } from 'crypto'
 
 
 export const Route = createFileRoute('/item')({
@@ -30,6 +31,16 @@ function Item() {
     const {id} = useSearch({from: "/item"})
     console.log("ID from search:", id)
 
+    const VerifyLogIn = () => {
+    const token = localStorage.getItem("token")
+
+    if (!token) {
+        alert("You must be logged in to perform this action.")
+        return false
+    }
+
+    return true
+    }
     const { data, isLoading } = useQuery({
         queryKey: ['item', id],
         enabled: id > 0,
@@ -52,6 +63,7 @@ function Item() {
     const rentSubmit = async(submit: React.FormEvent) => {
         submit.preventDefault()
         console.log("rent button pressed")
+        if (!VerifyLogIn()) return
         //@ts-ignore
         const res = await client.api.library.rent.$post({
             query: {bookId: String(id)},
@@ -59,6 +71,17 @@ function Item() {
             Authorization: `Bearer ${localStorage.getItem("token")}`
         }
         })
+
+        if (!res.ok) {
+            if (res.status === 401) {
+            alert("Please log in first.")
+            } else if (res.status === 409) {
+            alert("Book already rented or unavailable.")
+            } else {
+            alert("Failed to rent book.")
+            }
+            return
+        }
         console.log(localStorage.getItem("token"))
         console.log(res)
     }
@@ -68,6 +91,8 @@ function Item() {
     const submit = async(submit: React.FormEvent) => {
         submit.preventDefault()
         console.log("reserve button pressed")
+        if (!VerifyLogIn()) return
+
         //@ts-ignore
         const res = await client.api.library.reserve.$post({
             query: {bookId: String(id)},
@@ -75,6 +100,19 @@ function Item() {
             Authorization: `Bearer ${localStorage.getItem("token")}`
         }
         })
+
+
+        if (!res.ok) {
+            if (res.status === 401) {
+            alert("Please log in first.")
+            } else if (res.status === 409) {
+            alert("Book already rented or unavailable.")
+            } else {
+            alert("Failed to rent book.")
+            }
+            return
+        }
+
         console.log(localStorage.getItem("token"))
         console.log(res)
     }
